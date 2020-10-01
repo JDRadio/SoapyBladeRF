@@ -281,6 +281,12 @@ public:
 
     unsigned readGPIODir(const std::string &bank) const;
 
+    /*******************************************************************
+     * Native Access API
+     ******************************************************************/
+
+    void* getNativeDeviceHandle(void) const;
+
 private:
 
     static bladerf_channel _toch(const int direction, const size_t channel)

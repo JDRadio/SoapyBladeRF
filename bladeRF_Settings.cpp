@@ -1396,3 +1396,12 @@ unsigned bladeRF_SoapySDR::readGPIODir(const std::string &bank) const
     if (ret != 0) throw std::runtime_error("readGPIODir("+bank+") " + _err2str(ret));
     return value;
 }
+
+/*******************************************************************
+ * Native Access API
+ ******************************************************************/
+
+void* bladeRF_SoapySDR::getNativeDeviceHandle(void) const
+{
+    return _dev;
+}
