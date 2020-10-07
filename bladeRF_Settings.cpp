@@ -630,6 +630,139 @@ std::vector<double> bladeRF_SoapySDR::listBandwidths(const int direction, const 
 }
 
 /*******************************************************************
+ * Clocking API
+ ******************************************************************/
+
+double bladeRF_SoapySDR::getMasterClockRate(void) const
+{
+    return 38.4e6;
+}
+
+void bladeRF_SoapySDR::setReferenceClockRate(const double rate)
+{
+    if (! _isBladeRF2) return;
+
+    int ret = bladerf_set_pll_refclk(_dev, uint64_t(rate));
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_set_pll_refclk() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("setReferenceClockRate() " + _err2str(ret));
+    }
+}
+
+double bladeRF_SoapySDR::getReferenceClockRate(void) const
+{
+    if (! _isBladeRF2) return 0;
+
+    uint64_t rate(0);
+    int ret = bladerf_get_pll_refclk(_dev, &rate);
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_get_pll_refclk() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("getReferenceClockRate() " + _err2str(ret));
+    }
+
+    return double(rate);
+}
+
+SoapySDR::RangeList bladeRF_SoapySDR::getReferenceClockRates(void) const
+{
+    if (! _isBladeRF2) return SoapySDR::RangeList();
+
+    const bladerf_range* range(nullptr);
+    int ret = bladerf_get_pll_refclk_range(_dev, &range);
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_get_pll_refclk_range() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("getReferenceClockRates() " + _err2str(ret));
+    }
+
+    return {toRange(range)};
+}
+
+std::vector<std::string> bladeRF_SoapySDR::listMasterClockSources(void) const
+{
+    std::vector<std::string> clocks;
+    clocks.push_back("internal");
+    if (_isBladeRF2) clocks.push_back("external");
+    return clocks;
+}
+
+std::vector<std::string> bladeRF_SoapySDR::listReferenceClockSources(void) const
+{
+    std::vector<std::string> clocks;
+    clocks.push_back("internal");
+    if (_isBladeRF2) clocks.push_back("external");
+    return clocks;
+}
+
+void bladeRF_SoapySDR::setMasterClockSource(const std::string &source)
+{
+    if (! _isBladeRF2) return;
+
+    bladerf_clock_select sel = (source == "external" ? CLOCK_SELECT_EXTERNAL : CLOCK_SELECT_ONBOARD);
+    int ret = bladerf_set_clock_select(_dev, sel);
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_set_clock_select() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("setMasterClockSource() " + _err2str(ret));
+    }
+}
+
+void bladeRF_SoapySDR::setReferenceClockSource(const std::string &source)
+{
+    if (! _isBladeRF2) return;
+
+    bool enable = (source == "external");
+    int ret = bladerf_set_pll_enable(_dev, enable);
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_set_pll_enable() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("setReferenceClockSource() " + _err2str(ret));
+    }
+}
+
+std::string bladeRF_SoapySDR::getMasterClockSource(void) const
+{
+    if (! _isBladeRF2) return "internal";
+
+    bladerf_clock_select sel;
+    int ret = bladerf_get_clock_select(_dev, &sel);
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_get_clock_select() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("getMasterClockSource() " + _err2str(ret));
+    }
+
+    if (sel == CLOCK_SELECT_EXTERNAL) return "external";
+    else if (sel == CLOCK_SELECT_ONBOARD) return "internal";
+    else return "unknown";
+}
+
+std::string bladeRF_SoapySDR::getReferenceClockSource(void) const
+{
+    if (! _isBladeRF2) return "internal";
+
+    bool enabled(false);
+    int ret = bladerf_get_pll_enable(_dev, &enabled);
+
+    if (ret != 0)
+    {
+        SoapySDR::logf(SOAPY_SDR_ERROR, "bladerf_get_pll_enable() returned %s", _err2str(ret).c_str());
+        throw std::runtime_error("getReferenceClockSource() " + _err2str(ret));
+    }
+
+    if (enabled) return "external";
+    else return "internal";
+}
+
+/*******************************************************************
  * Time API
  ******************************************************************/
 

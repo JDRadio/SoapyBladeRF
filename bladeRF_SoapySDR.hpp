@@ -219,6 +219,30 @@ public:
     std::vector<double> listBandwidths(const int direction, const size_t channel) const; //!deprecated
 
     /*******************************************************************
+     * Clocking API
+     ******************************************************************/
+
+    double getMasterClockRate(void) const;
+
+    void setReferenceClockRate(const double rate);
+
+    double getReferenceClockRate(void) const;
+
+    SoapySDR::RangeList getReferenceClockRates(void) const;
+
+    std::vector<std::string> listMasterClockSources(void) const;
+
+    std::vector<std::string> listReferenceClockSources(void) const;
+
+    void setMasterClockSource(const std::string &source);
+
+    void setReferenceClockSource(const std::string &source);
+
+    std::string getMasterClockSource(void) const;
+
+    std::string getReferenceClockSource(void) const;
+
+    /*******************************************************************
      * Time API
      ******************************************************************/
 
